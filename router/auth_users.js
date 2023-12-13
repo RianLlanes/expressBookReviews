@@ -21,14 +21,21 @@ regd_users.post("/login", (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  if (isValid(username) && authenticatedUser(username, password)) {
-    // Implement JWT creation and session saving logic here
-    // You may use the 'jsonwebtoken' library for this
-    const token = jwt.sign({ username: username }, 'your_secret_key');
-    req.session.username = username; // Save username in session
-    res.json({ message: "Login successful", token: token });
+  if (!username || !password) {
+      return res.status(404).json({message: "Error logging in"});
+  }
+
+  if (authenticatedUser(username,password)) {
+    let accessToken = jwt.sign({
+      data: password
+    }, 'access', { expiresIn: 60});
+
+    req.session.authorization = {
+      accessToken,username
+  }
+  return res.status(200).send("User successfully logged in");
   } else {
-    res.status(401).json({ message: "Invalid credentials" });
+    return res.status(208).json({message: "Invalid Login. Check username and password"});
   }
 });
 
